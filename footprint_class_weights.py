@@ -98,14 +98,14 @@ def get_timestep(foot):
 args = parse_args()
 
 # TODO: change this to just footpints when fixed in R script
-footdir = f'{args.site}_footprints'
+footdir = 'footprints'
 
 # make paths
 mosaic_path = os.path.join(args.path, args.site, 'mosaic')
 foot_path   = os.path.join(args.path, args.site, footdir)
 
 # get names of footprints
-footprints = [os.path.join(foot_path, f) for f in os.listdir(foot_path) if 'summary' not in f]
+footprints = [os.path.join(foot_path, f) for f in os.listdir(foot_path) if 'summary' not in f and '.xml' not in f]
 
 # get the unique classes
 nc = [os.path.join(mosaic_path, f) for f in os.listdir(mosaic_path) if '.nc' in f][0]
@@ -128,8 +128,12 @@ cols
 timeseries = pd.DataFrame(timeseries, columns=cols)
 timeseries = timeseries.set_index('t')
 
-# drop bad data timesteps
-timeseries = timeseries[(timeseries['0'] > 0) & (timeseries['1'] > 0) & (timeseries['2'] > 0)]
+# NA for bad data timesteps
+timeseries.loc[(timeseries.values < 0).any(axis=1), :] = 'NA'
+
+# print the missing data percentage
+missing = 100 *len(timeseries.loc[(timeseries.values == 'NA').any(axis=1)]) / len(timeseries)
+print(f'{missing}\% of the footprint files are bunk.')
 
 
 # %%
