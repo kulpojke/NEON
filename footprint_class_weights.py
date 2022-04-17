@@ -25,7 +25,7 @@ def parse_args():
     return args
 
 
-def find_nearest_file(footprint,site, mosaic_path):
+def find_nearest_file(footprint, site, mosaic_path):
     '''
     Returns the file path to the netcdf containing kmeans classification
     for which the year is closest to that of footprint.
@@ -80,7 +80,7 @@ def get_timestep(foot):
     # set epsg from attrs
     data = data.rio.write_crs(data.attrs['epsg'])
 
-    # clip the hyperspectral derived data to fpptprint extent
+    # clip the hyperspectral derived data to footprint extent
     data = data.rio.clip_box(minx=np.atleast_1d(footprint.x.min())[0],
                             miny=np.atleast_1d(footprint.y.min())[0],
                             maxx=np.atleast_1d(footprint.x.max())[0],
@@ -134,6 +134,7 @@ timeseries.loc[(timeseries.values < 0).any(axis=1), :] = 'NA'
 # print the missing data percentage
 missing = 100 *len(timeseries.loc[(timeseries.values == 'NA').any(axis=1)]) / len(timeseries)
 print(f'{missing}\% of the footprint files are bunk.')
+
 
 
 # %%
