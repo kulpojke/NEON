@@ -36,10 +36,10 @@ COPY get_flux.R /
 
 # change permisions
 WORKDIR /
-RUN chmod -R 777 /stack_by_sensor.sh && \
-    chmod -R 777 /stack_by_sensor.R
+RUN chmod -R 777 /get_flux.sh && \
+    chmod -R 777 /get_flux.R
 
-ENTRYPOINT ["/stack_by_sensor.sh"]
+ENTRYPOINT ["/get_flux.sh"]
 
 
 
