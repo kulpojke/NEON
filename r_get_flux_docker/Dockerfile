@@ -37,7 +37,11 @@ COPY get_flux.R /
 # change permisions
 WORKDIR /
 RUN chmod -R 777 /get_flux.sh && \
-    chmod -R 777 /get_flux.R
+    chmod -R 777 /get_flux.R && \
+    chmod -R 777 /work && \
+    mkdir out && \
+    chmod -R 777 out
+
 
 ENTRYPOINT ["/get_flux.sh"]
 
