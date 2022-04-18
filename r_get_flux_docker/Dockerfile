@@ -31,8 +31,8 @@ RUN R -e "install.packages('BiocManager'); \
 WORKDIR /work
 
 # copy files
-COPY stack_by_sensor.sh /
-COPY stack_by_sensor.R /
+COPY get_flux.sh /
+COPY get_flux.R /
 
 # change permisions
 WORKDIR /
