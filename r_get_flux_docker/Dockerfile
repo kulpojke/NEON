@@ -1,4 +1,4 @@
-FROM rocker/r-base:4.1.2
+FROM r-base:4.1.3
 
 # install apt packages
 RUN apt-get update \
