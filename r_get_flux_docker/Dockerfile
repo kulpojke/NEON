@@ -32,9 +32,8 @@ COPY get_flux.sh /
 COPY get_flux.R /
 
 # change permisions
-WORKDIR /
-RUN chmod -R 777 /get_flux.sh && \
-    chmod -R 777 /get_flux.R &&
+RUN chmod 777 /get_flux.sh && \
+    chmod 777 /get_flux.R
 
 # create a non-root user
 RUN useradd -ms /bin/bash notroot
