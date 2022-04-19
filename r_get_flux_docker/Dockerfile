@@ -40,8 +40,8 @@ RUN useradd -ms /bin/bash notroot
 USER notroot
 
 # make working and output directories
+WORKDIR /home/out
 WORKDIR /home/work
-RUN mkdir /home/out
 
 ENTRYPOINT ["/get_flux.sh"]
 
