@@ -27,12 +27,19 @@ RUN R -e "install.packages('BiocManager'); \
     install.packages('rgdal'); \
     BiocManager::install('rhdf5')"
 
-# create a non-root user
-RUN useradd -ms /bin/bash notroot
-USER notroot
-
 # make working and output directories
 WORKDIR /home/work/out
+
+# create a non-root user
+RUN useradd -ms /bin/bash notroot
+
+# change ownership
+RUN chown -R notroot /home/work
+
+# switch user
+USER notroot
+
+# change workdir
 WORKDIR /home/work
 
 # copy files
