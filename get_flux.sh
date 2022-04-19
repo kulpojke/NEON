@@ -7,4 +7,4 @@ APITOKEN=$4
 SAVEPATH=$5
 
 # run the app
-Rscript /get_flux.R $SITE $STARTDATE $ENDDATE $APITOKEN /root/work
+Rscript /get_flux.R $SITE $STARTDATE $ENDDATE $APITOKEN /out

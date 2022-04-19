@@ -27,9 +27,6 @@ RUN R -e "install.packages('BiocManager'); \
     install.packages('rgdal'); \
     BiocManager::install('rhdf5')"
 
-# make working directory
-WORKDIR /work
-
 # copy files
 COPY get_flux.sh /
 COPY get_flux.R /
@@ -37,11 +34,15 @@ COPY get_flux.R /
 # change permisions
 WORKDIR /
 RUN chmod -R 777 /get_flux.sh && \
-    chmod -R 777 /get_flux.R && \
-    chmod -R 777 /work && \
-    mkdir out && \
-    chmod -R 777 out
+    chmod -R 777 /get_flux.R &&
 
+# create a non-root user
+RUN useradd -ms /bin/bash notroot
+USER notroot
+
+# make working and output directories
+WORKDIR /home/work
+RUN mkdir /home/out
 
 ENTRYPOINT ["/get_flux.sh"]
 

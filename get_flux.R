@@ -82,19 +82,18 @@ dir.create(foot_path, recursive=TRUE, showWarnings=FALSE)
 # Iterate through the raster layers saving tifs
 i <- 1
 for (lyr in footprint@layers) {
-  # There are too many, drop to h resolution (every other)
-  if (i %% 2 == 0) {
-    # make filename
-    fname <- paste(foot_path, tail(strsplit(names(lyr), "\\.")[[1]], n=1), sep="/")
-    fname <- paste0(fname, ".tiff")
 
-    # change all negatives to -9999 (no data)
-    ras <- reclassify(lyr, cbind(-Inf, 0, -9999), right=FALSE)
+  # make filename
+  fname <- paste(foot_path, tail(strsplit(names(lyr), "\\.")[[1]], n=1), sep="/")
+  fname <- paste0(fname, ".tiff")
 
-    # write tiff
-    print(paste0('    ... writing ', fname))
-    writeRaster(ras, filename=fname, overwrite = TRUE)
-    }
+  # change all negatives to -9999 (no data)
+  ras <- reclassify(lyr, cbind(-Inf, 0, -9999), right=FALSE)
+
+  # write tiff
+  print(paste0('    ... writing ', fname))
+  writeRaster(ras, filename=fname, overwrite = TRUE)
+
   i <- i + 1
   }
 
