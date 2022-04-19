@@ -19,6 +19,9 @@ enddate   <- args[3]
 api_token <- args[4]
 savepath  <- args[5]
 
+# print a message
+print(paste0('Files will be seaved internally to ', savepath))
+
 # we'll need these
 library(neonUtilities)
 library(raster)
