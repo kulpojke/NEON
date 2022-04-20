@@ -48,8 +48,9 @@ COPY get_flux.R .
 
 # change permisions
 USER root
-RUN chmod 777 /home/work/get_flux.sh && \
-    chmod 777 /home/work/get_flux.R
+RUN chmod -R 777 /home/work/get_flux.sh && \
+    chmod 777 /home/work/get_flux.R && \
+    chmod -R 777 /home/work/out
 USER notroot
 
 ENTRYPOINT ["/home/work/get_flux.sh"]
