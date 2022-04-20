@@ -7,4 +7,9 @@ APITOKEN=$4
 SAVEPATH=$5
 
 # run the app
-Rscript /home/work/get_flux.R $SITE $STARTDATE $ENDDATE $APITOKEN /out
+echo " "
+echo " "
+echo "---------------------------------------"
+echo " "
+echo "$SAVEPATH is mounted as /home/work/out and ..."
+Rscript /home/work/get_flux.R $SITE $STARTDATE $ENDDATE $APITOKEN /home/work/out

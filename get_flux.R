@@ -21,6 +21,8 @@ savepath  <- args[5]
 
 # print a message
 print(paste0('Files will be seaved internally to ', savepath))
+print('\n---------------------------------------')
+
 
 # we'll need these
 library(neonUtilities)
