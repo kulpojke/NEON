@@ -20,8 +20,8 @@ api_token <- args[4]
 savepath  <- args[5]
 
 # print a message
-print(paste0('Files will be seaved internally to ', savepath))
-print('\n---------------------------------------')
+print(paste0('Files will be saved internally to ', savepath))
+print('---------------------------------------')
 
 
 # we'll need these
