@@ -38,7 +38,7 @@ COPY get_flux.sh /work
 COPY get_flux.R /work
 RUN chmod -R 777 /work
 
-ENTRYPOINT ["/work/get_flux.sh"]
+ENTRYPOINT ["/work/get_flux_vice.sh"]
 
 
 
