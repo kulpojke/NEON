@@ -36,6 +36,7 @@ WORKDIR /work
 # copy files
 COPY get_flux.sh /work
 COPY get_flux.R /work
+RUN chmod -R 777 /work
 
 ENTRYPOINT ["/work/get_flux.sh"]
 
