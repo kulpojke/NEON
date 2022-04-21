@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       # A matrix of Dockerfile paths and associated tags
       matrix:
-        dockerfile: [[r_get_flux_docker/Dockerfile, flux-], [geo3_docker/Dockerfile, geo3-]]
+        dockerfile: [[r_get_flux_docker/Dockerfile, flux-], [r_vice_get_flux_docker/Dockerfile, flux-vice-],[geo3_docker/Dockerfile, geo3-]]
     steps:
       - name: Get short SHA
         id: shorty
