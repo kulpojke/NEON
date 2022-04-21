@@ -35,7 +35,7 @@ WORKDIR /work
 
 # copy files
 COPY get_flux_vice.sh /work
-COPY get_flux_vice.R /work
+COPY get_flux.R /work
 RUN chmod -R 777 /work
 
 ENTRYPOINT ["/work/get_flux_vice.sh"]
