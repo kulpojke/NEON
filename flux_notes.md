@@ -1,14 +1,16 @@
+Equation numbers follow aubinet2012, as does everything unless otherwise cited.
+
 ## The eddy flux method
 Eddy covariance methods are generally made in the surface boundary layer where turbulent flux is the largest driver of vertical transport and there tends to be relatively little variation of flux with height \cite{aubinet2012, foken2008}.
 
 ### Reynolds Decomposition
 (follows \cite{aubinet2012}) Reynolds decomposition allows for the partitioning of the time series of each variable $\zeta$ into it mean with repect to time, $\overline{\zeta}$, and a fluctuating part $\zeta^{\prime}$:
 
-$$ \zeta = \overline{\zeta} + \zeta^{\prime} $$ (1a)
+$$ \zeta = \overline{\zeta} + \zeta^{\prime} $$ (1.1a)
 
 where:
 
-$$ \zeta^{\prime} = \frac{1}{T} \int_{T}^{t+T}\zeta(t)\,dt $$ (1b)
+$$ \zeta^{\prime} = \frac{1}{T} \int_{T}^{t+T}\zeta(t)\,dt $$ (1.1b)
 
 The following rules , known as the Reynolds postulates, for averaging are required to calculate the turbulent value, $\zeta^{\prime}$:
 
@@ -18,7 +20,7 @@ $$
 \mathrm{iii} \:\:\:\:\:\:\:\: \overline{\bar{\zeta} \, \xi} = \bar{\zeta} \, \bar{\xi} \\
 \mathrm{iv} \:\:\:\:\:\:\:\: \overline{a\zeta} = a \, \bar{\zeta} \\
 \mathrm{v} \:\:\:\:\:\:\:\: \overline{\zeta+ \xi} = \bar{\zeta} + \bar{\xi}
-$$ (1c)
+$$ (1.2)
 
 Where $a$ is a constant and $\xi$ is a second variable.
 
@@ -29,7 +31,7 @@ The rules can be described as:
 (iv) the product of a constant and a variable is the constant times the mean of the variable;
 (v) the mean of the sum of two variables is the sum of their means.
 
-The application of the Reynolds postulates relies on the assumption of ergodicity,i.e. that the time average is related to the spacial average. This requires that the fluctuations are statistically stationary over the averaging time. (TODO: should I explaint this more?)
+The application of the Reynolds postulates relies on the assumption of ergodicity,i.e. that the time average is related to the spacial average. This requires that the fluctuations are statistically stationary over the averaging time. (TODO: should I explain this more?)
 
 ### Section in the book called Scalar Definition
 Variables commonly used in literature to describe an atmospheric constituent $s$:
@@ -52,7 +54,7 @@ $$
 \vec{\nabla} (\vec{u} \, \rho_{d} 0\; \zeta) +
 K_{\zeta} \, \Delta(\rho_{d} \; \zeta) =
 S_{\zeta} 
-$$ (2a)
+$$ (1.3)
 
 where:
 + $\vec{u}$ is the wind velocity vector,
@@ -73,22 +75,31 @@ equation  2a can be described as:
 rate of change of ${\zeta}$ + diffusion + transport = production or consumption
 
 If:
-+ $\zeta = 1$, equation 2a becomes the continutiy equation,
++ $\zeta = 1$, equation 2a becomes the continuity equation (dry air mass)(eq1.4 and by applying the time averaging operator eq 1.5),
 
 $$
 \frac{\partial \rho_{d}}{\partial t} + 
-\vec{\nabla} (\vec{u} \, \rho_{d} 0) = 0
-$$ (2b)
+\vec{\nabla} (\vec{u} \, \rho_{d}) = 0
+$$ (1.4)
+
+$$
+\frac{\overline{\partial \rho_{d}}}{\partial t} + 
+\vec{\nabla} (\overline{\vec{u} \, \rho_{d}}) = 0
+$$ (1.5)
+
 
 + $\zeta =$ air enthalpy,  equation 2a becomes the enthalpy conservation equation,
 
 + $\zeta =$ mixing ratio of a component, equation 2a becomes the scalar conservation equation,
 
-+ $\zeta =$ a component of the wind velocity vector in a given direction equation 2a becomes the conservation of that momentum component.
-
++ $\zeta =$ a component of the wind velocity vector in a given direction, $u_{i}$, equation 2a becomes the conservation of that momentum component. In this case $S_{i}$ refers to  forces, such as drag, Coriolis forces, pressure gradients, etc... as those are the sources or sinks of momentum. 
 $$
+\frac{\partial \rho_{d} \, u_{i}}{\partial t} + 
+\vec{\nabla} (\vec{u} \, \rho_{d} \, u_{i}) = S_{i}
+$$ (1.6)
 
-$$
+
+
 
 + "The three equations describing the momentum conservation in the three directions constitute the Navier Stokes equations"
 
@@ -117,3 +128,8 @@ $$
   year={2007},
   publisher={Springer}
 }
+
+
+
+yurok - ~47k acres in carbon 
+forest resilience planning in support of california climate investments
