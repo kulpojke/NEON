@@ -46,7 +46,7 @@ Of the above quantities, changes in temperature, pressure and water vapor conten
 __Table 1.2 in this book has conversions between these quantitites__
 
 
-### Onep point conservation equations
+### One point conservation equations
 The following equation describes the conservation of a scalar or vector quantity, $\zeta$ in the atmosphere at a given instant and point:
 
 $$
@@ -98,10 +98,44 @@ $$
 \vec{\nabla} (\vec{u} \, \rho_{d} \, u_{i}) = S_{i}
 $$ (1.6)
 
-
-
-
 + "The three equations describing the momentum conservation in the three directions constitute the Navier Stokes equations"
+
+# NEON.DOC.004571
+
+Variables found in `'SITE/dp04/data/foot/stat/` for a given site \cite{NEON_DOC_004571}.
+
++ `timeBgn` - Observation start time.
+
++ `timeEnd` -  Observation end time.
+
++ `angZaxsErth` -  Wind direction.
+
++ `distReso` - Footprint matrix cell size.
+  - Set equal to relative measurement height above displacement, and rounded to 10 m.
+
++ `veloYaxsHorSd` - Standard deviation of the cross-wind velocity.
+
++ `veloZaxsHorSd` - Standard deviation of the vertical velocity.
+
++ `veloFric` - Friction Velocity (often denoted $u*$)
+
++ `distZaxsMeasDisp` - Relative measurement height above displacement.
+
++ `distZaxsRgh` - Roughness length.
+  - Calculated via call to eddy4R.turb::def.dist.rgh() )
+
++ `distZaxsAbl` - Boundary layer height.
+  - Set to 1000 m by default.
+
++ `distXaxs90` - Along-wind distance of the 90 percent crosswind-integrated cumulative footprint.
+
++ `distXaxsMax` - Along-wind distance of contribution peak.
+
++ `distYaxs90` - One-sided cross-wind distance of the 90 percent along-wind integrated cumulative footprint.
+
+## Calculations of fluxes
+
+# Refs
 
 @book{aubinet2012,
   title={Eddy covariance: a practical guide to measurement and data analysis},
@@ -129,7 +163,14 @@ $$ (1.6)
   publisher={Springer}
 }
 
+@techreport{NEON_DOC_004571,
+  author={Metzger, S., Durden, D., Florian, C., Luo, H., Pingintha-Durden, N., and Xu, K.},
+  title={Algorithm theoretical basis document: eddy-covariance data products bundle},
+  institution={National Ecological Observatory Network},
+  year={2018},
+  number={Revision A (2018-04-30)},
+  address={Boulder, U.S.A.},
+  month={04},
+  note={http://data.neonscience.org/documents}
+}
 
-
-yurok - ~47k acres in carbon 
-forest resilience planning in support of california climate investments
