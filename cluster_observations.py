@@ -15,6 +15,7 @@ files = [os.path.join(file_path, f) for f in os.listdir(file_path) if '.h5' in f
 
 
 # %%
+'''
 # get the units from meta (seems like there should be columns names, but no)
 for f in files[:1]:
     with h5py.File(f, 'r') as h:
@@ -27,7 +28,7 @@ cols = ['timeBgn', 'timeEnd', 'AngZaxsErth', 'distReso', 'VeloYaxsHorSd', 'VeloZ
 
 # make list for dfs
 dfs = []
-
+'''
 # %%
 
 def find_valid_observations(f):
@@ -63,7 +64,7 @@ def find_valid_observations(f):
 
 def find_sectors(stat, theta=10):
     '''
-    Returns a df of timestamps and direction sectors
+    Returns a df of timestamps and sectors of the mean wind direction
     '''
 
     # make sure theta goes into 360 an even number of times
@@ -78,6 +79,26 @@ def find_sectors(stat, theta=10):
     return stat[['timeBgn', 'sector']]
 
 
+def get_sample_size(sectors):
+    '''Returns sample size, based on smallest sector counts'''
+    # check to see if all sectors are represented
+    if len(sectors.sector.unique()) != 360 // θ:
+        dif = ((360 // θ - len(sectors.sector.unique()))
+                + sectors.sector.unique()[sectors.sector.unique() == 0.0].shape[0])
+        print(f'Warning: There are no observations for {dif} sectors.')
+
+    # find the 4 smallest sector counts
+    four_small = np.sort(np.partition(sectors.sector.unique(), 4)[:5])
+
+    # take the first bin count >= 20
+    for i in range(5):
+        if four_small[i] >= 20:
+            sample_size = four_small[i]
+            if i > 0:
+                print(f'Warning: There are {i} underrepresented sectors.')
+            break
+
+    return sample_size
 
 
 # %%
@@ -99,12 +120,12 @@ for f in files:
     # scrunch the latest observations onto the df
     sectors = pd.concat([sectors, sects], axis=0)
 
-# check to see if all sectors are represented
-if len(sectors.sector.unique()) != 360 // θ:
-    dif = 360 // θ - len(sectors.sector.unique())
-    print(f'Warning: There are no observations for {dif} sectors.')
+    # get the sample size
+    sample_size = get_sample_size(sectors)
 
-    # make a two stage stratified sample by sector
+
+
+
 
 
 # %%
