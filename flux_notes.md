@@ -135,6 +135,22 @@ Variables found in `'SITE/dp04/data/foot/stat/` for a given site \cite{NEON_DOC_
 
 ## Calculations of fluxes
 
+
+# Methods (as in my methods)
+
+## Sample selection
+
+Samples were selected following the basic procedure used by Gianccico et al. \cite{giannico2018}, but with some modification.  Half-hourly observations of CO$_{2}$ NSAE with no missing values and no bad quality control flags were first selected from the bundled eddy covariance data \cite{NEON_DP4_00200_001}.  The observations were then labeled by wind direction sector and assigned to a cluster based on input variables of the footprint model. The number of sectors varied from site to site based on the distribution of wind direction and how many observations were available for a given sector.
+
+Clustering of observations was done with an unsupervised Gaussian Mixture Model using `sklearn.mixture.GaussianMixture` \cite{scikit2011}.  Selection of the number of clusters was done automatically maximizing the Silhouette Coefficient \cite{rousseeuw1987},
+
+Once observations had been assigned a sector and a cluster a two level stratified sample was selected first by sector, then by cluster. For each site a number of samples was selected in order to have a somewhat balanced representation of observations from the different sectors and cluster while maintaining as large a sample size as possible. 
+
+$$
+s = \frac{b-a}{max(a,b)}
+$$
+where $a$ is the mean distance between a point and other poits in the same cluster, and $b$ is the distance between a sample and all the oints in the nearest cluster.
+
 # Refs
 
 @book{aubinet2012,
@@ -152,6 +168,16 @@ Variables found in `'SITE/dp04/data/foot/stat/` for a given site \cite{NEON_DOC_
   publisher={Springer}
 }
 
+@article{giannico2018,
+  title={Contributions of landscape heterogeneity within the footprint of eddy-covariance towers to flux measurements},
+  author={Giannico, Vincenzo and Chen, Jiquan and Shao, Changliang and Ouyang, Zutao and John, Ranjeet and Lafortezza, Raffaele},
+  journal={Agricultural and Forest Meteorology},
+  volume={260},
+  pages={144--153},
+  year={2018},
+  publisher={Elsevier}
+}
+
 @article{kowalski2007,
   title={On the relationship between the eddy covariance, the turbulent flux, and surface exchange for a trace gas such as CO2},
   author={Kowalski, Andrew S and Serrano-Ortiz, Pen{\'e}lope},
@@ -161,6 +187,17 @@ Variables found in `'SITE/dp04/data/foot/stat/` for a given site \cite{NEON_DOC_
   pages={129--141},
   year={2007},
   publisher={Springer}
+}
+
+@misc{NEON_DP4_00200_001,
+  doi = {10.48443/7CQP-3J73},
+  url = {https://data.neonscience.org/data-products/DP4.00200.001/RELEASE-2022},
+  author = {{National Ecological Observatory Network (NEON)}},
+  keywords = {attitude, carbon dioxide (CO2), carbon-13 (13C), CO2 mixing ratio, CO2 molar fraction, eddy covariance (EC), energy balance, evapotranspiration (ET), flux, footprint, hydrogen-2 (2H), isotopes, latent heat, momentum, motion, net ecosystem exchange (NEE), net surface atmosphere exchange (NSAE), oxygen-18 (18O), profile, sensible heat, stable isotopes, storage, turbulence, water (H2O) mixing ratio, water (H2O) molar fraction, water (H2O) vapor, wind direction, wind speed},
+  language = {en},
+  title = {Bundled data products - eddy covariance (DP4.00200.001)},
+  publisher = {National Ecological Observatory Network (NEON)},
+  year = {2022}
 }
 
 @techreport{NEON_DOC_004571,
@@ -174,3 +211,22 @@ Variables found in `'SITE/dp04/data/foot/stat/` for a given site \cite{NEON_DOC_
   note={http://data.neonscience.org/documents}
 }
 
+@article{rousseeuw1987,
+  title={Silhouettes: a graphical aid to the interpretation and validation of cluster analysis},
+  author={Rousseeuw, Peter J},
+  journal={Journal of computational and applied mathematics},
+  volume={20},
+  pages={53--65},
+  year={1987},
+  publisher={Elsevier}
+}
+
+@article{scikit2011,
+  title={Scikit-learn: Machine learning in Python},
+  author={Pedregosa, Fabian and Varoquaux, Ga{\"e}l and Gramfort, Alexandre and Michel, Vincent and Thirion, Bertrand and Grisel, Olivier and Blondel, Mathieu and Prettenhofer, Peter and Weiss, Ron and Dubourg, Vincent and others},
+  journal={Journal of machine learning research},
+  volume={12},
+  number={Oct},
+  pages={2825--2830},
+  year={2011}
+}
