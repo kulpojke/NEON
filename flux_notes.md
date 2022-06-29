@@ -1,7 +1,7 @@
 Equation numbers follow aubinet2012, as does everything unless otherwise cited.
 
 ## The eddy flux method
-Eddy covariance methods are generally made in the surface boundary layer where turbulent flux is the largest driver of vertical transport and there tends to be relatively little variation of flux with height \cite{aubinet2012, foken2008}.
+Eddy covariance measurements are generally made in the surface boundary layer where turbulent flux is the largest driver of vertical transport and there tends to be relatively little variation of flux with height \cite{aubinet2012, foken2008}.
 
 ### Reynolds Decomposition
 (follows \cite{aubinet2012}) Reynolds decomposition allows for the partitioning of the time series of each variable $\zeta$ into it mean with repect to time, $\overline{\zeta}$, and a fluctuating part $\zeta^{\prime}$:
@@ -59,13 +59,17 @@ $$ (1.3)
 where:
 + $\vec{u}$ is the wind velocity vector,
 + $\vec{\nabla}$ is the divergence operator 
-, $ (\frac{\partial}{\partial x},
+ 
+ $$ \vec{\nabla} = (\frac{\partial}{\partial x},
 \frac{\partial}{\partial y},
-\frac{\partial}{\partial z} ) $,
+\frac{\partial}{\partial z} ) $$
+
 + $\Delta$ is the Laplacian operator
-, $ (\frac{\partial^{2}}{\partial x^{2}} +
++ 
+$$ \Delta = (\frac{\partial^{2}}{\partial x^{2}} +
 \frac{\partial^{2}}{\partial y^{2}} +
-\frac{\partial^{2}}{\partial z^{2}} ) $,
+\frac{\partial^{2}}{\partial z^{2}} ) $$
+
 + $\rho_{d}$ is the dry air density,
 + $K_{\zeta}$ is the molecular diffusivity of $\zeta$,
 + and $S_{\zeta}$ is the magnitude of the source or sink of $\zeta$
@@ -140,16 +144,19 @@ Variables found in `'SITE/dp04/data/foot/stat/` for a given site \cite{NEON_DOC_
 
 ## Sample selection
 
-Samples were selected following the basic procedure used by Gianccico et al. \cite{giannico2018}, but with some modification.  Half-hourly observations of CO$_{2}$ NSAE with no missing values and no bad quality control flags were first selected from the bundled eddy covariance data \cite{NEON_DP4_00200_001}.  The observations were then labeled by wind direction sector and assigned to a cluster based on input variables of the footprint model. The number of sectors varied from site to site based on the distribution of wind direction and how many observations were available for a given sector.
+Samples were selected following the basic procedure used by Gianccico et al. \cite{giannico2018}, but with some modification.  Half-hourly observations of CO$_{2}$ NSAE with no missing values and no bad quality control flags were first selected from the bundled eddy covariance data \cite{NEON_DP4_00200_001}.  The observations were then labeled by wind direction sector and assigned to a cluster based on input variables of the footprint model. __The number of sectors varied from site to site based on the distribution of wind direction and how many observations were available for a given sector__.
 
-Clustering of observations was done with an unsupervised Gaussian Mixture Model using `sklearn.mixture.GaussianMixture` \cite{scikit2011}.  Selection of the number of clusters was done automatically maximizing the Silhouette Coefficient \cite{rousseeuw1987},
+Clustering of observations was done with an unsupervised Gaussian Mixture Model using `sklearn.mixture.GaussianMixture` \cite{scikit2011}.  The number of clusters was selected automatically by maximizing the Silhouette Coefficient \cite{rousseeuw1987},
 
 Once observations had been assigned a sector and a cluster a two level stratified sample was selected first by sector, then by cluster. For each site a number of samples was selected in order to have a somewhat balanced representation of observations from the different sectors and cluster while maintaining as large a sample size as possible. 
 
-$$
-s = \frac{b-a}{max(a,b)}
-$$
-where $a$ is the mean distance between a point and other poits in the same cluster, and $b$ is the distance between a sample and all the oints in the nearest cluster.
+*__How about instead we just__*
++ calculate the metrics for each 95 percent footprint and see how they corelate with flux
++ post hoc look at the clusters to see what effect they have
+
+Once we have an idea about the effects of these things
++ pick a subsample for which to calculate soil flux
++ look at T and soil moisture effects
 
 # Refs
 

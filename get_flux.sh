@@ -13,6 +13,4 @@ echo "---------------------------------------"
 echo " "
 echo "$SAVEPATH is mounted as /home/work/out and ..."
 
-touch /home/work/out/test_touch.txt
-
 Rscript /home/work/get_flux.R $SITE $STARTDATE $ENDDATE $APITOKEN /home/work/out

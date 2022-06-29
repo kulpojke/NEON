@@ -152,7 +152,7 @@ def initiate_footstack(foot, data):
     footstack = footprint.to_dataset()
     footstack = footstack.drop('equal_interval')
 
-    # ad a new dimension, t, fot timeseries of footrasters
+    # add a new dimension, t, fot timeseries of footrasters
     footstack = footstack.expand_dims(dim='t')
 
     # make all 0.5 t0 0.95 quantile rasters
