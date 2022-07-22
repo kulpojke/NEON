@@ -35,7 +35,7 @@ NEON
       |__summary.tiff
 ```
 
-3. **Built hyperspectral mosaic** - (this happens for each site in `hyperspectral_mosaic_SITE.ipynb`)
+3. **Built hyperspectral mosaic** - (this happens for each site in `hyperspectral_mosaic_SITE.ipynb`)  Performs pca and kmeans clustering then assemples the mosaic tiles into large tiffs and a netCDF
 
 ```
 NEON
