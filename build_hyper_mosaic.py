@@ -1,33 +1,33 @@
+from distutils.ccompiler import new_compiler
 import os
 import random
+import glob
 import numpy as np
+import argparse
+
 import h5py
-import matplotlib.pyplot as plt
-
-from numba import cuda, jit
-
 from dask import delayed, compute
 from dask.diagnostics import ProgressBar
-
 from sklearn.preprocessing import  StandardScaler
 from sklearn.decomposition import PCA
-from sklearn.decomposition import IncrementalPCA as IPCA
 from sklearn.cluster import KMeans
-from sklearn.impute import SimpleImputer
 
 import rasterio as rio
-
 import xarray as xr
 import rioxarray
 
-import glob
+from tqdm import tqdm
+
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 
 
 def parse_arguments():
     '''parses the arguments, returns args'''
 
     # init parser
-    parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
+    parser = argparse.ArgumentParser()
 
     # add args
 
@@ -36,6 +36,20 @@ def parse_arguments():
         type=str,
         required=True,
         help='NEON site abreviation, e.g. "TEAK"',
+    )
+
+    parser.add_argument(
+        '--n_components',
+        type=int,
+        required=True,
+        help='Number of PCA components to use',
+    )
+
+    parser.add_argument(
+        '--n_clusters',
+        type=int,
+        required=True,
+        help='Number of kmeans clusters to use.',
     )
 
     parser.add_argument(
@@ -75,7 +89,6 @@ def parse_arguments():
         '''
     )
 
-
     # parse the args
     args = parser.parse_args()
 
@@ -94,7 +107,7 @@ def parse_arguments():
         args.src = os.path.join(args.src, 'neon-aop-products')
 
     # make destination path
-    args.dst = os.path.join(args.out_dir,
+    args.mosaic = os.path.join(args.out_dir,
                             args.site,
                             'mosaic')
 
@@ -113,6 +126,38 @@ def band_list():
     ])
 
     return good_bands
+
+
+@delayed
+def sample_from_file(fname, size):
+    '''samples from file'''
+
+    # open the file
+    f = h5py.File(fname, 'r')
+
+    # get the within reflectance as np array
+    refl_array = np.array(np.rot90(f[args.site]['Reflectance']['Reflectance_Data']))
+
+    # drop bad bands from refl_array
+    refl_array = refl_array[:, :, band_list()]
+
+    # get shape of wavelenght dimension
+    wl = refl_array.shape[2]
+
+    # reshape
+    flat_refl = refl_array.reshape(-1, wl)
+
+    # drop nulls
+    flat_refl = flat_refl[
+    (~np.any(flat_refl == -9999, axis=1)) &
+    (~np.any(np.isnan(flat_refl), axis=1))]
+
+    # get random sample indices
+    random.seed(3)
+    sample_idx = random.sample(range(flat_refl.shape[0]), int(flat_refl.shape[0] * size))
+
+    # return sample
+    return flat_refl[sample_idx, :]
 
 
 def sample_from_all(files, size):
@@ -137,63 +182,124 @@ def sample_from_all(files, size):
     return sample
 
 
-def plot_pca_var(pca):
-    '''plots explained variance by PCA component'''
+def read_h5_do_pca(fname, scaler, pca):
+    '''reads'''
 
-    # make fig
-    plt.figure(figsize=(10,4));
+    # open the file
+    f = h5py.File(fname, 'r')
 
-    # plot
-    plt.plot(range(1, 359),
-             pca.explained_variance_ratio_.cumsum(),
-             marker='o',
-             linestyle='--');
+    # seperate out reflectance
+    refl = f[args.site]['Reflectance']
 
-    # details
-    plt.title('Explained Variance by Number of Components');
-    plt.xlabel('Components');
-    plt.ylabel('Cumulative explained Var');
-    plt.xlim(0, 20);
-    plt.show()
+    # get no data value
+    no_data_value = refl['Reflectance_Data'].attrs['Data_Ignore_Value']
 
+    # get the actual data within reflectance as array
+    refl_array = np.array(np.rot90(refl['Reflectance_Data'], k=3), dtype=np.float16)
 
-def kmeans_wcss(n_components, scaled_refl, max_n_clusters=20):
-    '''
-    Returns a list of wcss values for different n_clusters values
-    after performing PCA using n_components.
-    args:
-        n_components   - number of components to be kept in PCA.
-        scaled_refl    - scaled values on which to perform PCA and
-                         clustering.
-        max_n_clusters - max number of clusters to try default 20.
-    '''
-    # use n components for pca
-    pca = PCA(n_components=n_components)
+    # drop bad bands from refl_array
+    refl_array = refl_array[:, :, band_list()]
 
-    # fit
-    pca.fit(scaled_refl)
+    # get wavelength info
+    wavelengths = np.array(refl['Metadata']['Spectral_Data']['Wavelength'])
+
+    # drop bad bands from wavelength
+    wavelengths = wavelengths[band_list()]
+
+    # get  dimensions of array
+    x  = refl_array.shape[0]
+    y  = refl_array.shape[1]
+    wl = refl_array.shape[2]
+
+    # reshape
+    flat_refl = refl_array.reshape(-1, wl)
+
+    # make sure there are no nans
+    flat_refl[np.isnan(flat_refl)] = no_data_value
+
+    # before we drop no-datas get their indices
+    null_idx = np.argwhere(np.any(flat_refl == no_data_value, axis=1)).flatten()
+
+    # pick arbitray valid index
+    good_idx = np.argwhere(~np.any(flat_refl == no_data_value, axis=1)).flatten()[25]
+
+    # fill no-datas with a vaule within normal range if need be (they will be returned to na data val in output)
+    if null_idx.any():
+        #flat_refl = flat_refl[np.argwhere(~np.any(flat_refl == no_data_value, axis=1)).flatten()]
+        flat_refl[null_idx] = flat_refl[good_idx]
+
+    # scale with previously fit scaler
+    scaled = scaler.transform(flat_refl)
 
     # get component scores
-    scores_pca = pca.transform(scaled_refl)
+    scores_pca = pca.transform(scaled)
 
-    # empty list for witih cluster sum of squares
-    wcss = []
+    # put no-data values back in if need be
+    if null_idx.any():
+        #scores_pca = np.insert(scores_pca, null_idx, [no_data_value] * scores_pca.shape[1], axis=0)
+        scores_pca[null_idx, :] = [no_data_value] * scores_pca.shape[1]
 
-    # now try out some differnt cluster numbers
-    print(f'Out of {max_n_clusters} trials working on:')
+    # reshape to original tile x, y
+    scores_pca = scores_pca.reshape(x, y, args.n_components)
 
-    for n in range(1, max_n_clusters + 1):
+    # close hdf
+    #f.close()
 
-        print(f'\b\b{n}', end="")
+    return scores_pca, refl
 
-        kmeans =  KMeans(n_clusters=n, init='k-means++', random_state=42)
-        kmeans.fit(scores_pca)
-        wcss.append(kmeans.inertia_)
 
-    print('\ndone!')
+def tiffize_and_xarray(arr, refl, out_file):
+    '''
+    Writes tiff from array.
 
-    return wcss, pca
+    args:
+        arr      - array to be written as tiff
+        refl     - reflectance metadata from h5
+        out_file - filename of tiff to write
+    '''
+    # bag crs as epsg
+    epsg = refl['Metadata']['Coordinate_System']['EPSG Code'][()].decode("utf-8")
+    epsg = f'EPSG:{epsg}'
 
+    # bag other crs info
+    crs_info = refl['Metadata']['Coordinate_System']['Map_Info'][()].decode("utf-8").split(',')
+
+    # get corners and x, y resolution
+    xmin = float(crs_info[3])
+    ymax = float(crs_info[4])
+    xres = float(crs_info[5])
+    yres = float(crs_info[6])
+    xmax = xmin + (arr.shape[1] * xres)
+    ymin = ymax - (arr.shape[0] * yres)
+
+    # create array of x center pixel locations in utm coords
+    x = np.linspace(xmin, xmax, arr.shape[1], endpoint=False)
+    x = x + xres * 0.5
+
+    # create array of y center pixel locations in utm coords
+    y = np.linspace(ymin, ymax, arr.shape[0], endpoint=False)
+    y = y + yres * 0.5
+
+    # make dataset
+    d_all = xr.DataArray(arr, dims=['x', 'y', 'components'], coords={'x':x, 'y':y, 'components': range(arr.shape[2])})
+    d_all.name = 'pca'
+    d_all = d_all.to_dataset()
+
+    # assign crs and spatial dims
+    d_all.rio.write_crs(epsg, inplace=True)
+
+    # attributes
+    no_data_value = refl['Reflectance_Data'].attrs['Data_Ignore_Value']
+    d_all.attrs = {
+                    'no_data_value': no_data_value,
+                    'epsg': epsg,
+                    'crs' : crs_info
+                  }
+
+    # write the labels to geotiff
+    d_all.pca.transpose('components', 'y', 'x').rio.to_raster(out_file)
+
+    return d_all
 
 
 if __name__ == '__main__':
@@ -201,62 +307,128 @@ if __name__ == '__main__':
     # parse the args
     args = parse_arguments()
 
-    # find the years with htperspectral data
-    years = [y
-             for y
-             in os.listdir(args.src)
-             if os.path.isdir(os.path.join(args.dst, y))]
-
-    # make a dict with paths to all files for each year
-    data_dict = {}
-    for year in years:
-
-        globstring = os.path.join(
-            args.src,
-            year,
-            'Fullsite',
-            'D??',
-            f'{year}_{args.site}_*',
-            'L3',
-            'Spectrometer',
-            'Reflectance',
-            '*.h5'
-            )
-
-        data_dict[year] =  glob.glob(globstring)
-
     # ensure directory for pca tiffs exists and make path
     os.makedirs(args.pca, exist_ok=True)
 
-    # begin to make a the path to the hyperspectral data
-    hyper_path = os.path.join(args.data_dir,
-                              args.site,
-                              'hyperspectral',
-                              'DP3.30006.001',
-                              'neon-aop-products')
+    # find the years with hyperspectral data
+    years = [y
+             for y
+             in os.listdir(args.src)
+             if os.path.isdir(os.path.join(args.src, y))]
 
     # check to make sure there is hyperspectral for the site
-    if not os.path.isdir(hyper_path):
+    if not os.path.isdir(args.src):
         a = f'There appears to be no hyperspectral data for {args.site} '
-        b = f'{hyper_path} is not a directory.'
+        b = f'{args.src} is not a directory.'
         msg = a + b
         raise Exception(msg)
 
     # get the years (they are directories in hyper_path)
-    years = os.listdir(hyper_path)
+    years = os.listdir(args.src)
 
     for year in years:
 
         # get the rest of the path
-        globstring = os.path.join(hyper_path,
+        globstring = os.path.join(args.src,
         year,
         'FullSite',
-        'D08',
+        'D[0-9][0-9]',
         f'{year}_{args.site}_[0-9]',
         'L3',
         'Spectrometer',
         'Reflectance',
-        f'NEON_D08_{args.site}_DP3_*.h5')
+        f'NEON_D[0-9][0-9]_{args.site}_DP3_*.h5')
 
         # find the names of the hyperspectral cubes
         files = glob.glob(globstring)
+
+        # sample the files so we can train scalar
+        size = 1 / 500
+        sample = sample_from_all(files, size)
+
+        # change dtype for memory
+        sample = np.array(sample, dtype=np.float16)
+
+        # fit and transform
+        scaler = StandardScaler().fit(sample)
+        scaled = scaler.transform(sample)
+
+        # instantiate the PCA model
+        pca = PCA(n_components=args.n_components)
+
+        # fit the pca model
+        pca.fit(scaled)
+
+        # delete sample for memory
+        del sample
+        del scaled
+
+        # list for xarrays to merge later
+        xarrays = []
+
+        print(f'Working om {len(files)} files for {args.site}-{year}')
+        for i, f in tqdm(enumerate(files)):
+
+            base = os.path.basename(f).split('.')[0].split('_')
+            base = '_'.join([base[2], base[4], base[5]])
+
+            scores_pca, refl = read_h5_do_pca(f, scaler, pca)
+
+            # make fname
+            os.makedirs(os.path.join(args.pca, year), exist_ok=True)
+            tiff = os.path.join(args.pca, year, f'{base}_pca.tiff')
+
+            # write tiffs and make xarrays
+            xarrays.append(tiffize_and_xarray(scores_pca, refl, tiff))
+
+        # combine the xarrays
+        mosaic = xr.combine_by_coords(xarrays, combine_attrs='override')
+        no_data_value = mosaic.attrs['no_data_value']
+
+        # get the nice unified pca array
+        pca_arr = mosaic.pca.data
+
+        # determine number of pca compnents in use
+        comps = mosaic.components.data.shape[0]
+
+        # flatten the pca img
+        flat_pca = pca_arr.reshape(-1, comps)
+
+        # before we drop no-datas get their indices
+        null_idx = np.argwhere(np.any(flat_pca == no_data_value, axis=1)).flatten()
+
+        # pick arbitray valid index
+        good_idx = np.argwhere(~np.any(flat_pca == no_data_value, axis=1)).flatten()[25]
+
+        # drop no-datas
+        if null_idx.any():
+            flat_pca[null_idx] = flat_pca[good_idx]
+
+        # cluster
+        kmeans =  KMeans(n_clusters=args.n_clusters, init='k-means++', random_state=42)
+        kmeans.fit(flat_pca)
+
+        # get labels
+        labels = kmeans.labels_
+
+        # add the labels to the xarray
+        mosaic['kmeans_label'] = xr.DataArray(labels.reshape(pca_arr.shape[0], pca_arr.shape[1]), dims=['x', 'y'])
+
+        # ensure directory for mosaics exists
+        os.makedirs(os.path.join(args.mosaic, year), exist_ok=True)
+
+        # make fname
+        tiff = os.path.join(args.mosaic, year, f'{args.site}_{year}_kmeans_mosaic.tiff')
+
+        # write the labels to geotiff
+        mosaic.kmeans_label.transpose('y', 'x').rio.to_raster(tiff, dtype=np.int8)
+
+        # make fname
+        tiff = os.path.join(args.mosaic, year, f'{args.site}_{year}_pca_mosaic.tiff')
+
+        # write the labels to geotiff
+        mosaic.pca.transpose('components', 'y', 'x').rio.to_raster(tiff)
+
+        # write netCDF
+        ncdf = os.path.join(args.mosaic, year, f'{args.site}_{year}_mosaic.nc')
+        mosaic.to_netcdf(ncdf)

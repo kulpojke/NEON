@@ -63,9 +63,22 @@ def parse_arguments():
     # parse the args
     args = parser.parse_args()
 
-    # add paths to args
+    # add basepath to args
     args.basepath = os.path.join(args.data_dir, args.site)
-    args.ncdf = os.path.join(args.basepath, 'mosaic', f'{args.site}_{args.year}_mosaic.nc')
+
+    # find best match for year
+    years = os.listdir(os.path.join(args.basepath, 'mosaic'))
+    if args.year not in years:
+        print(f'hyperspectral mosaic is not available for {args.year}.')
+
+        # find the closest year
+        closeness = [abs(int(args.year) - int(y)) for y in years]
+        args.year = years[np.argmin(closeness)]
+
+        print(f'Using hyperspectral mosaic from {args.year} instead')
+
+    # add more paths
+    args.ncdf = os.path.join(args.basepath, 'mosaic', args.year, f'{args.site}_{args.year}_mosaic.nc')
     args.foot_path = os.path.join(args.basepath, 'footprints')
 
     return(args)
@@ -186,7 +199,11 @@ def make_foot_series(foot):
     footprint = interp_foot_2_data(footprint, data)
 
     # create equal interval contour classifcations
-    footprint = equal_interval(footprint, k=20)
+    try:
+        footprint = equal_interval(footprint, k=20)
+    except:
+        return None, None
+
 
     # make all 0.5 t0 0.95 quantile rasters
     qs = []
@@ -242,16 +259,21 @@ if __name__ == '__main__':
     os.makedirs(footmask_home, exist_ok=True)
 
     first = True
+    fails = []
 
-    for foot in tqdm(footprints):
+    for foot in footprints:
         if first:
             footstack, foot_series, t = initiate_footstack(foot, data)
             first = False
         else:
             foot_series, t = make_foot_series(foot)
 
-        foot_series = foot_series.rename('footprint')
-        foot_series.to_netcdf(os.path.join(footmask_home, f'{t}.nc'))
+        if t:
+            foot_series = foot_series.rename('footprint')
+            foot_series.to_netcdf(os.path.join(footmask_home, f'{t}.nc'))
 
+        else:
+            fails.append(t)
 
     print(f'Finished writing files to {footmask_home}')
+    print(f'{len(fails)} failed out of {len(footprints)} total footprints.')

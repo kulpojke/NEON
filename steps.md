@@ -35,7 +35,42 @@ NEON
       |__summary.tiff
 ```
 
-3. **Built hyperspectral mosaic** - (this happens for each site in `hyperspectral_mosaic_SITE.ipynb`)  Performs pca and kmeans clustering then assemples the mosaic tiles into large tiffs and a netCDF
+3. **Determine needed Principal components and clusters** - (`hyperspectral_n_k_determination.ipynb`)
+
+For each year, for each site:
+
++ 0.2% of pixels were randomly sampled from each hyperspectral reflectance file from the first year with available data.
+
++ Bands with H2O or CO2 absorption issues were dropped (need way more info about this)
+
++ Data was scaled using sklearn.preprocessing.StandardScaler \cite_{sklearn}.
+
++ PCA was performed on the sample.
+
+Then:
+
++ Cumulative explained variance ratio for all site-years was plotted.
+
++ The number of principal components ,_n_=3,  to use was selected by inspecting the plot. _n_ was selected such that greater than 95% of the variance was explained for all site-years, and if reasonable, the slope of the  cumulative explained variance ratio was beginning to level off for all site-years.
+
++ In notebooks (`hyperspectral_mosaic_notebooks`) for several different sites Within-Cluster Sum of Square (WCSS) was plotted for various numbers of clusters using _n_ components.  The elbow method was used to determine the number of clusters, _k_=3. (__Maybe go back and plot them all like you did for *n*__)
+
++ this step failed for DCSF and HARV, so they were omitted from this step of the analysis.
+
+
+3. **Built hyperspectral mosaic** - (this happens for each site in `build_hyper_mosaic.py`)  Performs pca and kmeans clustering then assembles the mosaic tiles into large tiffs and a netCDF. For each site:
+
++ 0.2% of pixels were randomly sampled from each hyperspectral reflectance file from the first year with available data.
+
++ Bands with H2O or CO2 absorption issues were dropped (need way more info about this)
+
++ Data was scaled using sklearn.preprocessing.StandardScaler \cite_{sklearn}.
+
++ the sampled pixels were then used to train the PCA model (sklearn.decomposition.PCA) using $n=3$ components.
+
++ Kmeans clustering was then performed using the three pca components.
+
++ 
 
 ```
 NEON
@@ -79,3 +114,23 @@ NEON
 4. **Quantize the footprints** - (`Quantize footprint.py`)
 
 5. Revisit giannico method ipynbs
+
+
+ # Bib #
+
+@article{sklearn,
+ title={Scikit-learn: Machine Learning in {P}ython},
+ author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.
+         and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.
+         and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and
+         Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},
+ journal={Journal of Machine Learning Research},
+ volume={12},
+ pages={2825--2830},
+ year={2011}
+}
+
+
+# NOTES # 
+
++ Though the Konza Prairie site is abbreviated KONA, the abbreviation used in the files is KONZ.  Thus I changed the name of the Directory to match.
